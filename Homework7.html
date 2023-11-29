@@ -6,9 +6,11 @@
     <title>Stochastic Process Simulator</title>
     <style>
         body {
+            display: flex;
             font-family: 'Arial', sans-serif;
             margin: 20px;
             text-align: center;
+            flex-direction:column;
         }
 
         h1 {
@@ -25,6 +27,15 @@
             padding: 8px;
             font-size: 16px;
         }
+        .element-class {
+            display: flex;
+            justify-self: center;
+    justify-content: center; /* o right o center a seconda della necessità */
+    flex-direction: column;
+    width:300px;
+    }
+
+
 
         button {
             background-color: #4CAF50;
@@ -47,7 +58,7 @@
 </head>
 <body>
     <h1>Stochastic Process Simulator</h1>
-
+    <div class  = "element-class">
     <label for="processSelect">Select Stochastic Process:</label>
     <select id="processSelect" onchange="toggleParams()">
         <option value="randomWalk">Random Walk</option>
@@ -56,42 +67,55 @@
         <option value="ornsteinUhlenbeck">Ornstein-Uhlenbeck (Mean-Reverting)</option>
         <option value="vasicek">Vasicek</option>
     </select>
-
+</div>
+    <div class  = "element-class">
     <label for="numSteps">Number of Steps:</label>
     <input type="number" id="numSteps" value="100">
-
+</div>
+    <div class  = "element-class">
     <label for="timeDelta">Time Delta (Δt):</label>
     <input type="number" id="timeDelta" value="0.1">
-
+</div>
+<div class  = "element-class">
     <label for="drift" id="driftLabel" style="display: none;">Drift (μ):</label>
     <input type="number" id="drift" style="display: none;" value="0.1">
-
+</div>
+<div class  = "element-class">
     <label for="volatility" id="volatilityLabel" style="display: none;">Volatility (σ):</label>
     <input type="number" id="volatility" style="display: none;" value="0.2">
-
+    
+</div>
+<div class  = "element-class">
     <label for="theta" id="thetaLabel" style="display: none;">Theta (θ):</label>
     <input type="number" id="theta" style="display: none;" value="0.1">
-
+</div>
+<div class  = "element-class">
     <label for="mean" id="meanLabel" style="display: none;">Mean (μ):</label>
     <input type="number" id="mean" style="display: none;" value="0.5">
+</div>
+<div class  = "element-class">
     <label for="interestRate" id="interestRateLabel" style="display: none;">Interest Rate (r):</label>
     <input type="number" id="interestRate" style="display: none;" value="0.05">
-
-    <label for="mean" id="meanLabel" style="display: none;">Mean Reversion Level (θ):</label>
+</div>
+<div class  = "element-class">
+    <label for="mean" id="meanLabel" style="display: none;">Mean Reversion
+         Level (θ):</label>
     <input type="number" id="mean" style="display: none;" value="0.03">
-
+</div>
+<div class  = "element-class">
 <label for="volatility" id="volatilityLabel" style="display: none;">Volatility (σ):</label>
 <input type="number" id="volatility" style="display: none;" value="0.02">
+</div>
 
+<div class  = "element-class">
 <label for="speed" id="speedLabel" style="display: none;">Speed of Mean Reversion (κ):</label>
 <input type="number" id="speed" style="display: none;" value="0.1">
 
 
-    <button onclick="simulate()">Simulate</button>
 
-    <div id="output">
-        <!-- Display simulation results here -->
-    </div>
+
+    <button onclick="simulate()">Simulate</button>
+</div>
 
     <canvas id="myCanvas" width="800" height="400"></canvas>
 
@@ -117,14 +141,19 @@
             
 
             if (processSelect.value === "arithmeticBrownian" || processSelect.value === "geometricBrownian") {
-                driftLabel.style.display = "block";
-                driftInput.style.display = "block";
-                volatilityLabel.style.display = "block";
-                volatilityInput.style.display = "block";
+                driftLabel.style.display = "flex";
+                driftInput.style.display = "flex";
+                volatilityLabel.style.display = "flex";
+                volatilityInput.style.display = "flex";
                 thetaLabel.style.display = "none";
                 thetaInput.style.display = "none";
                 meanLabel.style.display = "none";
                 meanInput.style.display = "none";
+                interestRateLabel.style.display = "none";
+            interestRateInput.style.display = "none";
+           
+            speedLabel.style.display = "none";
+            speedInput.style.display = "none";
             } else if (processSelect.value === "ornsteinUhlenbeck") {
                 driftLabel.style.display = "none";
                 driftInput.style.display = "none";
@@ -134,6 +163,11 @@
                 thetaInput.style.display = "block";
                 meanLabel.style.display = "block";
                 meanInput.style.display = "block";
+                interestRateLabel.style.display = "none";
+            interestRateInput.style.display = "none";
+           
+            speedLabel.style.display = "none";
+            speedInput.style.display = "none";
             }
            else if (processSelect.value === "vasicek") {
             driftLabel.style.display = "none";
@@ -158,6 +192,11 @@
                 thetaInput.style.display = "none";
                 meanLabel.style.display = "none";
                 meanInput.style.display = "none";
+                interestRateLabel.style.display = "none";
+            interestRateInput.style.display = "none";
+           
+            speedLabel.style.display = "none";
+            speedInput.style.display = "none";
             }
         }
 
