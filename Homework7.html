@@ -222,9 +222,9 @@
             } else if (selectedProcess === "geometricBrownian") {
                 result = simulateGeometricBrownian(numSteps, timeDelta, drift, volatility);
             } else if (selectedProcess === "ornsteinUhlenbeck") {
-                result = simulateOrnsteinUhlenbeck(numSteps, timeDelta, drift, volatility, theta, mean);
+                result = simulateOrnsteinUhlenbeck(numSteps, timeDelta, volatility, theta, mean);
             } else if (selectedProcess === "vasicek") {
-                result = simulateVasicek(numSteps, timeDelta, interestRate, mean, volatility, speed);
+                result = simulateVasicek(numSteps, timeDelta, interestRate, volatility, speed);
             }
              else {
                 // Implement simulation logic for other processes
@@ -270,33 +270,33 @@
             return steps;
         }
 
-        function simulateOrnsteinUhlenbeck(numSteps, timeDelta, drift, volatility, theta, mean) {
+        function simulateOrnsteinUhlenbeck(numSteps, timeDelta,  volatility, theta, mean) {
             const steps = [mean];
 
             for (let i = 1; i < numSteps; i++) {
-                const randomIncrement = drift * (mean - steps[i - 1]) * timeDelta + volatility * Math.sqrt(timeDelta) * normalRandom();
+                const randomIncrement = theta * (mean - steps[i - 1]) * timeDelta + volatility * Math.sqrt(timeDelta) * normalRandom();
                 const step = steps[i - 1] + randomIncrement;
                 steps.push(step);
             }
 
             return steps;
         }
-        function simulateVasicek(numSteps, timeDelta, interestRate, mean, volatility, speed) {
-    const steps = [mean];
+         function simulateVasicek(numSteps, timeDelta, interestRate, volatility, speed) {
+            const steps = [speed];
 
-    for (let i = 1; i < numSteps; i++) {
-        const randomIncrement = speed * (interestRate - steps[i - 1]) * timeDelta + volatility * Math.sqrt(timeDelta) * normalRandom();
-        const step = steps[i - 1] + randomIncrement;
-        steps.push(step);
+            for (let i = 1; i < numSteps; i++) {
+                const randomIncrement = speed * (interestRate - steps[i - 1]) * timeDelta + volatility * Math.sqrt(timeDelta) * normalRandom();
+                const step = steps[i - 1] + randomIncrement;
+                steps.push(step);
+            }
+
+        return steps;
     }
-
-    return steps;
-}
 
         // Function to generate a random number from a normal distribution
         function normalRandom() {
             let u = 0, v = 0;
-            while (u === 0) u = Math.random(); // Converting [0,1) to (0,1)
+            while (u === 0) u = Math.random();
             while (v === 0) v = Math.random();
             return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
         }
