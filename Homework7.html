@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stochastic Process Simulator</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        select, input, button {
+            margin-top: 5px;
+            padding: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+
+        canvas {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Stochastic Process Simulator</h1>
+
+    <label for="processSelect">Select Stochastic Process:</label>
+    <select id="processSelect" onchange="toggleParams()">
+        <option value="randomWalk">Random Walk</option>
+        <option value="arithmeticBrownian">Arithmetic Brownian Motion</option>
+        <option value="geometricBrownian">Geometric Brownian Motion (Black-Scholes)</option>
+        <option value="ornsteinUhlenbeck">Ornstein-Uhlenbeck (Mean-Reverting)</option>
+        <option value="vasicek">Vasicek</option>
+    </select>
+
+    <label for="numSteps">Number of Steps:</label>
+    <input type="number" id="numSteps" value="100">
+
+    <label for="timeDelta">Time Delta (Δt):</label>
+    <input type="number" id="timeDelta" value="0.1">
+
+    <label for="drift" id="driftLabel" style="display: none;">Drift (μ):</label>
+    <input type="number" id="drift" style="display: none;" value="0.1">
+
+    <label for="volatility" id="volatilityLabel" style="display: none;">Volatility (σ):</label>
+    <input type="number" id="volatility" style="display: none;" value="0.2">
+
+    <label for="theta" id="thetaLabel" style="display: none;">Theta (θ):</label>
+    <input type="number" id="theta" style="display: none;" value="0.1">
+
+    <label for="mean" id="meanLabel" style="display: none;">Mean (μ):</label>
+    <input type="number" id="mean" style="display: none;" value="0.5">
+    <label for="interestRate" id="interestRateLabel" style="display: none;">Interest Rate (r):</label>
+    <input type="number" id="interestRate" style="display: none;" value="0.05">
+
+    <label for="mean" id="meanLabel" style="display: none;">Mean Reversion Level (θ):</label>
+    <input type="number" id="mean" style="display: none;" value="0.03">
+
+<label for="volatility" id="volatilityLabel" style="display: none;">Volatility (σ):</label>
+<input type="number" id="volatility" style="display: none;" value="0.02">
+
+<label for="speed" id="speedLabel" style="display: none;">Speed of Mean Reversion (κ):</label>
+<input type="number" id="speed" style="display: none;" value="0.1">
+
+
+    <button onclick="simulate()">Simulate</button>
+
+    <div id="output">
+        <!-- Display simulation results here -->
+    </div>
+
+    <canvas id="myCanvas" width="800" height="400"></canvas>
+
+    <script>
+        function toggleParams() {
+            const processSelect = document.getElementById("processSelect");
+            const driftLabel = document.getElementById("driftLabel");
+            const driftInput = document.getElementById("drift");
+            const volatilityLabel = document.getElementById("volatilityLabel");
+            const volatilityInput = document.getElementById("volatility");
+            const thetaLabel = document.getElementById("thetaLabel");
+            const thetaInput = document.getElementById("theta");
+            const meanLabel = document.getElementById("meanLabel");
+            const meanInput = document.getElementById("mean");
+            const interestRateLabel = document.getElementById("interestRateLabel");
+            const interestRateInput = document.getElementById("interestRate");
+            const speedLabel = document.getElementById("speedLabel");
+            const speedInput = document.getElementById("speed");
+          
+          
+            
+            
+            
+
+            if (processSelect.value === "arithmeticBrownian" || processSelect.value === "geometricBrownian") {
+                driftLabel.style.display = "block";
+                driftInput.style.display = "block";
+                volatilityLabel.style.display = "block";
+                volatilityInput.style.display = "block";
+                thetaLabel.style.display = "none";
+                thetaInput.style.display = "none";
+                meanLabel.style.display = "none";
+                meanInput.style.display = "none";
+            } else if (processSelect.value === "ornsteinUhlenbeck") {
+                driftLabel.style.display = "none";
+                driftInput.style.display = "none";
+                volatilityLabel.style.display = "block";
+                volatilityInput.style.display = "block";
+                thetaLabel.style.display = "block";
+                thetaInput.style.display = "block";
+                meanLabel.style.display = "block";
+                meanInput.style.display = "block";
+            }
+           else if (processSelect.value === "vasicek") {
+            driftLabel.style.display = "none";
+            driftInput.style.display = "none";
+            thetaLabel.style.display = "none";
+            thetaInput.style.display = "none";
+            interestRateLabel.style.display = "block";
+            interestRateInput.style.display = "block";
+            meanLabel.style.display = "block";
+            meanInput.style.display = "block";
+            volatilityLabel.style.display = "block";
+            volatilityInput.style.display = "block";
+            speedLabel.style.display = "block";
+            speedInput.style.display = "block";
+            }
+     else {
+                driftLabel.style.display = "none";
+                driftInput.style.display = "none";
+                volatilityLabel.style.display = "none";
+                volatilityInput.style.display = "none";
+                thetaLabel.style.display = "none";
+                thetaInput.style.display = "none";
+                meanLabel.style.display = "none";
+                meanInput.style.display = "none";
+            }
+        }
+
+        function simulate() {
+            const processSelect = document.getElementById("processSelect");
+            const selectedProcess = processSelect.value;
+
+            const numSteps = parseInt(document.getElementById("numSteps").value);
+            const timeDelta = parseFloat(document.getElementById("timeDelta").value);
+            const drift = parseFloat(document.getElementById("drift").value);
+            const volatility = parseFloat(document.getElementById("volatility").value);
+            const theta = parseFloat(document.getElementById("theta").value);
+            const mean = parseFloat(document.getElementById("mean").value);
+            const interestRate = parseFloat(document.getElementById("interestRate").value);
+            const speed = parseFloat(document.getElementById("speed").value);
+
+            let result;
+
+            if (selectedProcess === "randomWalk") {
+                result = simulateRandomWalk(numSteps, timeDelta);
+            } else if (selectedProcess === "arithmeticBrownian") {
+                result = simulateArithmeticBrownian(numSteps, timeDelta, drift, volatility);
+            } else if (selectedProcess === "geometricBrownian") {
+                result = simulateGeometricBrownian(numSteps, timeDelta, drift, volatility);
+            } else if (selectedProcess === "ornsteinUhlenbeck") {
+                result = simulateOrnsteinUhlenbeck(numSteps, timeDelta, drift, volatility, theta, mean);
+            } else if (selectedProcess === "vasicek") {
+                result = simulateVasicek(numSteps, timeDelta, interestRate, mean, volatility, speed);
+            }
+             else {
+                // Implement simulation logic for other processes
+                return;
+            }
+
+            // Draw the chart
+            drawChart(result);
+        }
+
+        function simulateRandomWalk(numSteps, timeDelta) {
+            const steps = [0];
+
+            for (let i = 1; i < numSteps; i++) {
+                const step = steps[i - 1] + (Math.random() > 0.5 ? 1 : -1) * timeDelta;
+                steps.push(step);
+            }
+
+            return steps;
+        }
+
+        function simulateArithmeticBrownian(numSteps, timeDelta, drift, volatility) {
+            const steps = [0];
+
+            for (let i = 1; i < numSteps; i++) {
+                const randomIncrement = drift * timeDelta + volatility * Math.sqrt(timeDelta) * (2 * Math.random() - 1);
+                const step = steps[i - 1] + randomIncrement;
+                steps.push(step);
+            }
+
+            return steps;
+        }
+
+        function simulateGeometricBrownian(numSteps, timeDelta, drift, volatility) {
+            const steps = [1];
+
+            for (let i = 1; i < numSteps; i++) {
+                const randomIncrement = drift * timeDelta + volatility * Math.sqrt(timeDelta) * normalRandom();
+                const step = steps[i - 1] * Math.exp(randomIncrement);
+                steps.push(step);
+            }
+
+            return steps;
+        }
+
+        function simulateOrnsteinUhlenbeck(numSteps, timeDelta, drift, volatility, theta, mean) {
+            const steps = [mean];
+
+            for (let i = 1; i < numSteps; i++) {
+                const randomIncrement = drift * (mean - steps[i - 1]) * timeDelta + volatility * Math.sqrt(timeDelta) * normalRandom();
+                const step = steps[i - 1] + randomIncrement;
+                steps.push(step);
+            }
+
+            return steps;
+        }
+        function simulateVasicek(numSteps, timeDelta, interestRate, mean, volatility, speed) {
+    const steps = [mean];
+
+    for (let i = 1; i < numSteps; i++) {
+        const randomIncrement = speed * (interestRate - steps[i - 1]) * timeDelta + volatility * Math.sqrt(timeDelta) * normalRandom();
+        const step = steps[i - 1] + randomIncrement;
+        steps.push(step);
+    }
+
+    return steps;
+}
+
+        // Function to generate a random number from a normal distribution
+        function normalRandom() {
+            let u = 0, v = 0;
+            while (u === 0) u = Math.random(); // Converting [0,1) to (0,1)
+            while (v === 0) v = Math.random();
+            return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+        }
+
+        function drawChart(data) {
+            const canvas = document.getElementById("myCanvas");
+            const ctx = canvas.getContext("2d");
+
+            const width = canvas.width;
+            const height = canvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw X and Y axes
+            ctx.beginPath();
+            ctx.moveTo(40, 0);
+            ctx.lineTo(40, height - 20);
+            ctx.lineTo(width, height - 20);
+            ctx.stroke();
+
+            // Draw axis labels
+            ctx.font = "14px Arial";
+            ctx.fillText("Time", width - 30, height - 5);
+            ctx.fillText("Value", 10, 10);
+
+            // Draw the chart line
+            ctx.beginPath();
+            ctx.moveTo(40, height - 20);
+
+            const stepSize = (width - 40) / data.length;
+
+            for (let i = 0; i < data.length; i++) {
+                const x = 40 + i * stepSize;
+                const y = height - 20 - data[i] * 10; // Adjust multiplier for scaling
+
+                ctx.lineTo(x, y);
+            }
+
+            ctx.stroke();
+        }
+    </script>
+</body>
+</html>
