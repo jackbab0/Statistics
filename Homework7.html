@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stochastic Process Simulator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/9.4.4/math.min.js"></script>
+
     <style>
         body {
             display: flex;
@@ -57,10 +59,16 @@
     </style>
 </head>
 <body>
+    
     <h1>Stochastic Process Simulator</h1>
+    <div class  = "element-class">
+    <label for="sdeInput">SDE Equation:</label>
+    <input type="text" id="sdeInput" placeholder="Enter SDE equation" />
+</div>
     <div class  = "element-class">
     <label for="processSelect">Select Stochastic Process:</label>
     <select id="processSelect" onchange="toggleParams()">
+        <option value="custom">Custom</option>
         <option value="randomWalk">Random Walk</option>
         <option value="arithmeticBrownian">Arithmetic Brownian Motion</option>
         <option value="geometricBrownian">Geometric Brownian Motion (Black-Scholes)</option>
@@ -68,6 +76,12 @@
         <option value="vasicek">Vasicek</option>
     </select>
 </div>
+<div class="element-class">
+    <label for="numSystems">Number of Systems:</label>
+    <input type="number" id="numSystems" value="1">
+</div>
+
+
     <div class  = "element-class">
     <label for="numSteps">Number of Steps:</label>
     <input type="number" id="numSteps" value="100">
@@ -98,7 +112,7 @@
     <input type="number" id="interestRate" style="display: none;" value="0.05">
 </div>
 <div class  = "element-class">
-    <label for="mean" id="meanLabel" style="display: none;">Mean Reversion
+    <label for="mean" id="meanLabel2" style="display: none;">Mean Reversion
          Level (θ):</label>
     <input type="number" id="mean" style="display: none;" value="0.03">
 </div>
@@ -117,7 +131,7 @@
     <button onclick="simulate()">Simulate</button>
 </div>
 
-    <canvas id="myCanvas" width="800" height="400"></canvas>
+    <canvas id="myCanvas" width="1200" height="400"></canvas>
 
     <script>
         function toggleParams() {
@@ -176,8 +190,8 @@
             thetaInput.style.display = "none";
             interestRateLabel.style.display = "block";
             interestRateInput.style.display = "block";
-            meanLabel.style.display = "block";
-            meanInput.style.display = "block";
+            meanLabel.style.display = "none";
+            meanInput.style.display = "none";
             volatilityLabel.style.display = "block";
             volatilityInput.style.display = "block";
             speedLabel.style.display = "block";
@@ -212,7 +226,33 @@
             const mean = parseFloat(document.getElementById("mean").value);
             const interestRate = parseFloat(document.getElementById("interestRate").value);
             const speed = parseFloat(document.getElementById("speed").value);
+            const sdeInput = document.getElementById("sdeInput").value;
+            const numSystems = parseInt(document.getElementById("numSystems").value);
+            
+            const canvas = document.getElementById("myCanvas");
+    const ctx = canvas.getContext("2d");
 
+    const width = canvas.width;
+    const height = canvas.height;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw X and Y axes
+    ctx.beginPath();
+    ctx.moveTo(40, 0);
+    ctx.lineTo(40, height - 20);
+    ctx.lineTo(width, height - 20);
+    
+    // Imposta il colore degli assi a nero
+    ctx.strokeStyle = "#000";
+    ctx.stroke();
+
+    // Draw axis labels
+    ctx.font = "14px Arial";
+    ctx.fillStyle = "#000";
+    ctx.fillText("Time", width - 30, height - 5);
+    ctx.fillText("Value", 10, 10);
+            for (let systemIndex = 0; systemIndex < numSystems; systemIndex++) {
             let result;
 
             if (selectedProcess === "randomWalk") {
@@ -227,13 +267,14 @@
                 result = simulateVasicek(numSteps, timeDelta, interestRate, volatility, speed);
             }
              else {
-                // Implement simulation logic for other processes
-                return;
+                result = simulateCustomProcess(numSteps, timeDelta, sdeInput);
+                
             }
 
+            result = scaleData(result, 0, 1);
             // Draw the chart
-            drawChart(result);
-        }
+            drawChart(result,systemIndex,ctx,width,height);
+        }}
 
         function simulateRandomWalk(numSteps, timeDelta) {
             const steps = [0];
@@ -257,18 +298,29 @@
 
             return steps;
         }
-
         function simulateGeometricBrownian(numSteps, timeDelta, drift, volatility) {
-            const steps = [1];
+    const steps = [1];
 
-            for (let i = 1; i < numSteps; i++) {
-                const randomIncrement = drift * timeDelta + volatility * Math.sqrt(timeDelta) * normalRandom();
-                const step = steps[i - 1] * Math.exp(randomIncrement);
-                steps.push(step);
-            }
+    for (let i = 1; i < numSteps; i++) {
+        const randomIncrement = drift * timeDelta + volatility * Math.sqrt(timeDelta) * normalRandom();
+        const exponent = Math.exp(randomIncrement);
 
-            return steps;
+        // Check for numerical stability
+        if (!isFinite(exponent)) {
+            console.error("Simulation stopped due to numerical instability.");
+            break;
         }
+
+        const step = steps[i - 1] * exponent;
+        steps.push(step);
+    }
+
+    return steps;
+}
+
+
+const result = simulateGeometricBrownian(numSteps, timeDelta, drift, volatility);
+console.log(result);
 
         function simulateOrnsteinUhlenbeck(numSteps, timeDelta,  volatility, theta, mean) {
             const steps = [mean];
@@ -301,42 +353,58 @@
             return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
         }
 
-        function drawChart(data) {
-            const canvas = document.getElementById("myCanvas");
-            const ctx = canvas.getContext("2d");
+        function simulateCustomProcess(numSteps, timeDelta, sdeEquation) {
+            const steps = [];
+            let step = 0;
+            
+            
+        const parsedEquation = math.parse(sdeEquation);
 
-            const width = canvas.width;
-            const height = canvas.height;
-
-            ctx.clearRect(0, 0, width, height);
-
-            // Draw X and Y axes
-            ctx.beginPath();
-            ctx.moveTo(40, 0);
-            ctx.lineTo(40, height - 20);
-            ctx.lineTo(width, height - 20);
-            ctx.stroke();
-
-            // Draw axis labels
-            ctx.font = "14px Arial";
-            ctx.fillText("Time", width - 30, height - 5);
-            ctx.fillText("Value", 10, 10);
-
-            // Draw the chart line
-            ctx.beginPath();
-            ctx.moveTo(40, height - 20);
-
-            const stepSize = (width - 40) / data.length;
-
-            for (let i = 0; i < data.length; i++) {
-                const x = 40 + i * stepSize;
-                const y = height - 20 - data[i] * 10; // Adjust multiplier for scaling
-
-                ctx.lineTo(x, y);
-            }
-
-            ctx.stroke();
+        for (let i = 0; i < numSteps; i++) {
+            const randomIncrement = parsedEquation.evaluate({ x: step, t: timeDelta * i, dt: timeDelta,r:normalRandom() });
+            step = step + randomIncrement;
+            steps.push(step);
         }
+     
+            
+             return steps;
+        }
+        function scaleData(data, newMin, newMax) {
+   
+    const currentMin = Math.min(...data);
+    const currentMax = Math.max(...data);
+
+    return data.map(value => newMin + (value - currentMin) * (newMax - newMin) / (currentMax - currentMin));
+}
+        function drawChart(data, systemIndex,ctx,width,height) {
+   
+
+    // Draw the chart line
+    ctx.beginPath();
+    ctx.moveTo(40, height - 20);
+
+    const stepSize = (width - 40) / data.length;
+
+    for (let i = 0; i < data.length; i++) {
+        const x = 40 + i * stepSize;
+        const y = height - 20 - data[i] * 50; // Adjust multiplier for scaling
+
+        ctx.lineTo(x, y);
+    }
+
+    // Specifica un colore diverso per ciascun processo
+    const colors = ["#FF5733", "#33FF57", "#337AFF", "#FF33F9", "#FFD933", "#33D9FF"];
+    ctx.strokeStyle = colors[Math.floor(Math.random() * colors.length)];
+    
+    ctx.stroke();
+
+    // Aggiungi una legenda
+    ctx.fillStyle = "#000";
+    ctx.fillText(systemIndex, width - 70, 20);
+}
+
+
+
     </script>
 </body>
 </html>
